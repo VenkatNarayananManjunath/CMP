@@ -7,6 +7,10 @@ import time
 import json
 import pandas as pd
 import socket
+import gc
+
+# Force cleanup on load
+gc.collect()
 
 # Set page config for a premium feel
 st.set_page_config(
@@ -105,6 +109,7 @@ with tabs[1]:
             )
             if result.returncode == 0:
                 st.success("Analysis Complete!")
+                gc.collect() # Clean up RAM
             else:
                 st.error("Monitoring script failed!")
                 st.code(result.stderr)

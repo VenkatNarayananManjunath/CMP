@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 import mlflow
 import mlflow.pytorch
 from mlflow.tracking import MlflowClient
+import gc
 
 # 1. Setup MLflow
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
@@ -58,7 +59,8 @@ def train_cifar_model():
         for epoch in range(params["epochs"]):
             running_loss = 0.0
             for i, data in enumerate(trainloader, 0):
-                if i > 50: break # Limiting for the 512MB RAM environment demonstration
+                if i >= 5: # Extremely short for terminal output
+                    break
                 
                 inputs, labels = data[0].to(device), data[1].to(device)
                 optimizer.zero_grad()

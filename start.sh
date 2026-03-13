@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 export AIRFLOW_HOME=$(pwd)/airflow_home
+export AIRFLOW__CORE__LOAD_PLUGINS=False
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
+export MALLOC_ARENA_MAX=2
 
 # 1. Start Streamlit (Main process)
 echo ">>> Starting Streamlit..."
