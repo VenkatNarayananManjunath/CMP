@@ -1,9 +1,9 @@
 import json
 import numpy as np
 import pandas as pd
-from evidently import Report
-from evidently.presets import DataDriftPreset
-from evidently.metrics import ValueDrift
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset
+from evidently.metrics import ColumnDriftMetric
 
 def generate_drift_report():
     print("Simulating dataset predictions for drift detection...")
@@ -25,20 +25,20 @@ def generate_drift_report():
         "brightness": np.random.normal(90, 15, 500) # Drifted image characteristic
     })
     
-    print("Generating Evidently Drift Report (Modern 0.7.x API)...")
+    print("Generating Evidently Drift Report (v0.4.x+ API)...")
     # Initialize Report
     report = Report(metrics=[
         DataDriftPreset(),
-        ValueDrift(column="confidence_score"),
-        ValueDrift(column="brightness")
+        ColumnDriftMetric(column_name="confidence_score"),
+        ColumnDriftMetric(column_name="brightness")
     ])
     
-    # Run the report returns a Snapshot/Run object
-    snapshot = report.run(reference_data=reference_data, current_data=current_data)
+    # Run the report
+    report.run(reference_data=reference_data, current_data=current_data)
     
-    # Use Snapshot methods to save
-    snapshot.save_html("data_drift_report.html")
-    snapshot.save_json("data_drift_report.json")
+    # Save results
+    report.save_html("data_drift_report.html")
+    report.save_json("data_drift_report.json")
     
     print(f"Drift detection completed. Reports generated: data_drift_report.html, data_drift_report.json")
     
