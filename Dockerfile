@@ -5,6 +5,8 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8501 \
+    # Suppress the root user warning and increase timeouts
+    PIP_ROOT_USER_ACTION=ignore \
     PIP_DEFAULT_TIMEOUT=200 \
     AIRFLOW__CORE__LOAD_EXAMPLES=False \
     AIRFLOW__CORE__EXECUTOR=SequentialExecutor \
@@ -22,7 +24,7 @@ RUN apt-get update && \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies - Optimized layer
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -36,8 +38,8 @@ RUN chmod +x start.sh
 # Expose Streamlit port
 EXPOSE 8501
 
-# Health check with 90s grace period so Airflow init doesn't cause false failures
-HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+# Health check with 120s grace period for slower Render instances
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
     CMD curl -f http://localhost:${PORT:-8501}/healthz || exit 1
 
 CMD ["./start.sh"]
