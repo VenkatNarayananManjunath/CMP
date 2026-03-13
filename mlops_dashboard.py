@@ -4,6 +4,9 @@ import os
 import sys
 import streamlit.components.v1 as components
 import time
+import json
+import pandas as pd
+import socket
 
 # Set page config for a premium feel
 st.set_page_config(
@@ -44,6 +47,26 @@ st.title("🤖 Vision Transformer MLOps Control Center")
 
 # Get path to the python executable in our venv to avoid path issues
 PYTHON_EXE = sys.executable
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # Check both localhost and 127.0.0.1 for container compatibility
+        return s.connect_ex(('127.0.0.1', port)) == 0 or s.connect_ex(('localhost', port)) == 0
+
+# Sidebar Debug Info
+st.sidebar.title("🛠️ System Control")
+if st.sidebar.checkbox("Show Service Logs"):
+    service = st.sidebar.selectbox("Log File", ["mlflow.log", "airflow.log"])
+    if os.path.exists(service):
+        with open(service, "r") as f:
+            st.sidebar.code(f.read()[-1000:])
+    else:
+        st.sidebar.warning(f"{service} not found.")
+
+if os.path.exists("airflow_home/standalone_admin_password.txt"):
+    with open("airflow_home/standalone_admin_password.txt", "r") as f:
+        pw = f.read().strip()
+        st.sidebar.info(f"🔑 Airflow Pass: {pw}")
 
 tabs = st.tabs(["📊 Overview", "🔍 Drift Monitoring", "🚀 Model Training", "📈 MLflow Tracking", "⛓️ Airflow Pipelines"])
 
@@ -130,15 +153,9 @@ with tabs[3]:
     st.header("Embedded MLflow Experiment UI")
     st.markdown("Direct access to metrics, parameters, and models stored in MLflow.")
     
-    # Check if MLflow is responding on its port
-    import socket
-    def is_port_in_use(port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(('localhost', port)) == 0
-
     if is_port_in_use(5000):
         # Embed MLflow UI directly
-        components.iframe("http://localhost:5000", height=800, scrolling=True)
+        components.iframe("http://127.0.0.1:5000", height=800, scrolling=True)
     else:
         st.warning("MLflow server is not detected on port 5000.")
         if st.button("Launch MLflow Server"):
