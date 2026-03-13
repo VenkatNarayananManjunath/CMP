@@ -3,41 +3,32 @@ set -e
 
 export AIRFLOW_HOME=$(pwd)/airflow_home
 export AIRFLOW__CORE__DAGS_FOLDER=$(pwd)/dags
-export AIRFLOW__CORE__LOAD_EXAMPLES=False
-export AIRFLOW__CORE__EXECUTOR=SequentialExecutor
 
-# 1. Start Streamlit FIRST (Fast & Light)
-# We use 'headless' mode and disable usage stats to save RAM
-echo ">>> [1/3] Starting Streamlit..."
+# 1. Start Streamlit (Lowest memory user)
+echo ">>> Starting Streamlit..."
 streamlit run mlops_dashboard.py \
     --server.port "${PORT:-8501}" \
     --server.address 0.0.0.0 \
     --server.headless true \
-    --browser.gatherUsageStats false \
-    --server.enableCORS false &
+    --browser.gatherUsageStats false &
 
 STREAMLIT_PID=$!
 
-# 2. Wait 20 seconds for Streamlit to pass the Render health check
-# This ensures Render marks the service as 'Live' before we bog it down
-echo ">>> Waiting for health check to pass..."
-sleep 20
+# 2. WAIT a long time before trying anything else
+# This lets Streamlit's initial memory spike settle.
+sleep 30
 
-# 3. Start MLflow (Medium weight)
-echo ">>> [2/3] Starting MLflow (Background)..."
+# 3. Start MLflow (Skinny mode)
+echo ">>> Starting MLflow Server..."
 nohup mlflow server \
     --backend-store-uri sqlite:///mlflow.db \
-    --host 0.0.0.0 --port 5000 > mlflow.log 2>&1 &
+    --host 127.0.0.1 --port 5000 > mlflow.log 2>&1 &
 
-# 4. Wait another 20 seconds
-sleep 20
+# 4. Airflow is too heavy for 512MB alongside the others.
+# We will only initialize the DB so the UI doesn't crash, 
+# but we WON'T start the scheduler/webserver automatically.
+echo ">>> Initializing Airflow DB (Ready for manual start)..."
+airflow db migrate || true
 
-# 5. Start Airflow (Heaviest service)
-# We use 'standalone' but suppress heavy logs
-echo ">>> [3/3] Starting Airflow 3 (Background)..."
-nohup airflow standalone > airflow.log 2>&1 &
-
-echo ">>> All services initializing. Check Sidebar for status."
-
-# Keep container alive
+echo ">>> System ready. Dashboard is live."
 wait $STREAMLIT_PID

@@ -1,4 +1,4 @@
-# ── Core Data & ML ───────────────────────────────────────────────
+# ── Core Data (Lighter versions) ─────────────────────────────────
 numpy
 pandas
 scikit-learn
@@ -6,24 +6,13 @@ scipy
 matplotlib
 plotly
 
-# ── PyTorch & Vision ─────────────────────────────────────────────
-torch==2.2.2
-torchvision==0.17.2
-
-# ── Hugging Face Stack ───────────────────────────────────────────
-transformers==4.40.2
-datasets==2.19.1
-evaluate==0.4.2
-accelerate==0.30.1
-safetensors
-
-# ── MLflow ───────────────────────────────────────────────────────
-mlflow==2.13.2
+# ── MLflow (Skinny version to save 200MB RAM) ────────────────────
+mlflow-skinny==2.13.2
 
 # ── Drift Monitoring ─────────────────────────────────────────────
 evidently==0.4.30
 
-# ── Airflow ──────────────────────────────────────────────────────
+# ── Airflow (Minimal install) ────────────────────────────────────
 apache-airflow==2.9.1
 
 # ── Dashboard ────────────────────────────────────────────────────
